@@ -64,11 +64,8 @@ mpas-ocean:
       - relativeVorticityCell
 
 Omega:
-  Advection:
-    HorzTracerFluxOrder: 3
   Tendencies:
     ThicknessFluxTendencyEnable: true
-    ThicknessFluxTendencyEnable : false
     PVTendencyEnable : false
     KETendencyEnable : false
     SSHTendencyEnable : false
