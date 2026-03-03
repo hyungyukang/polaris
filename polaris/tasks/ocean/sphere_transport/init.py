@@ -15,6 +15,9 @@ from polaris.tasks.ocean.sphere_transport.resources.tracer_distributions import 
     xyztrig,
 )
 
+from mpas_tools.transects import lon_lat_to_cartesian
+from numpy import cos, pi, sin, acos, atan2, asin
+
 
 class Init(OceanIOStep):
     """
@@ -78,6 +81,9 @@ class Init(OceanIOStep):
         latEdge = ds_mesh.latEdge
         lonCell = ds_mesh.lonCell
         lonEdge = ds_mesh.lonEdge
+        lonVertex = ds_mesh.lonVertex
+        latVertex = ds_mesh.latVertex
+        verticesOnEdge = ds_mesh.verticesOnEdge
         sphere_radius = ds_mesh.sphere_radius
 
         ds = ds_mesh.copy()
@@ -185,9 +191,35 @@ class Init(OceanIOStep):
         else:
             raise ValueError(f'Unexpected test case name {case_name}')
 
-        normalVelocity = sphere_radius * (
-            u * np.cos(angleEdge) + v * np.sin(angleEdge)
-        )
+        ### Previous conversion ----------------------------------------
+        #normalVelocity = sphere_radius * (
+        #    u * np.cos(angleEdge) + v * np.sin(angleEdge)
+        #)
+
+        ## Computing new angle & conversion ---------------------------
+        nEdges = lonEdge.values.shape[0]
+        ec = np.zeros(3)
+        v1 = np.zeros(3)
+        v2 = np.zeros(3)
+        nml_en = np.zeros(2)
+        normalVelocity = angleEdge ### For defining xarray var
+
+        for i in range(nEdges):
+            ### Less performing version, but better for debugging
+            nml_en[0], nml_en[1] = self.calc_edge_normal(lonEdge.values[i],
+                                                         latEdge.values[i],
+                                           lonVertex.values[verticesOnEdge.values[i,0]-1],
+                                           latVertex.values[verticesOnEdge.values[i,0]-1],
+                                           lonVertex.values[verticesOnEdge.values[i,1]-1],
+                                           latVertex.values[verticesOnEdge.values[i,1]-1],
+                                           ec,v1,v2, sphere_radius)
+
+            ### New conversion like MPAS-Ocean
+            normalVelocity.values[i] = sphere_radius * (
+                u[i] * nml_en[0] + v[i] * nml_en[1]
+            )
+
+
         normalVelocity, _ = xr.broadcast(normalVelocity, ds.refZMid)
         ds['normalVelocity'] = normalVelocity.expand_dims(dim='Time', axis=0)
 
@@ -196,3 +228,33 @@ class Init(OceanIOStep):
         ds['fVertex'] = xr.zeros_like(ds_mesh.xVertex)
 
         self.write_model_dataset(ds, 'initial_state.nc')
+
+
+     def calc_edge_normal(self,lonc, latc, lon1, lat1, lon2, lat2, ec, v1, v2, sphere_radius):
+        ec[0],ec[1],ec[2] = lon_lat_to_cartesian(lonc, latc, 1.0, degrees=False)
+        v1[0],v1[1],v1[2] = lon_lat_to_cartesian(lon1, lat1, 1.0, degrees=False)
+        v2[0],v2[1],v2[2] = lon_lat_to_cartesian(lon2, lat2, 1.0, degrees=False)
+
+        d = v2 - v1
+
+        nml = np.cross(d,ec,axis=0)
+        nml = nml / np.linalg.norm(nml, axis=0)
+        east, north = self.calc_local_east_north(ec[0],ec[1],ec[2])
+
+        nml_en0 = np.sum(nml * east, axis=0)
+        nml_en1 = np.sum(nml * north, axis=0)
+
+        norm = nml_en0*nml_en0  + nml_en1*nml_en1
+        nml_en0 = nml_en0/np.sqrt(norm)
+        nml_en1 = nml_en1/np.sqrt(norm)
+
+        return nml_en0, nml_en1
+
+    def calc_local_east_north(self,x, y, z):
+        axis = [0, 0, 1]
+        xyz = np.stack((x, y, z), axis=0)
+        east = np.cross(axis, np.transpose(xyz), axis=0)
+        north = np.cross(np.transpose(xyz), east, axis=0)
+        east = east / np.linalg.norm(east, axis=0)
+        north = north / np.linalg.norm(north, axis=0)
+        return east, north
