@@ -25,8 +25,6 @@ ocean:
 mpas-ocean:
   io:
     config_write_output_on_startup: false
-  bottom_drag:
-    config_bottom_drag_mode: explicit
   cvmix:
     config_use_cvmix: false
   split_explicit_ts:
