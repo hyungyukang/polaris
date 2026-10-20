@@ -644,16 +644,17 @@ The harmonic and biharmonic momentum viscosities are set per mesh by the
 scales them with the local cell width (`config_hmix_scaleWithMesh`, Omega's
 `MeshScalingEnable`), which is off by default in both models.  On the
 quasi-uniform `QU.240km` mesh they are not scaled, and the biharmonic
-viscosity is raised from Omega's default of 1.2e11 m^4/s to 1.0e15 m^4/s to reduce, but not remove, grid-scale noise in the
-velocity.  This value is provisional until Omega has the fix to its
-pressure-gradient errors over bathymetry.  On `EC30to60E2r2` they are scaled.
-Omega scales relative to the median cell width, so its viscosities are E3SM's
-MPAS-Ocean values of 1.0e3 m^2/s and 1.2e11 m^4/s, which are referenced to
-the 30-km cells, converted to the 35.92-km median cell width: 1197 m^2/s and
-2.06e11 m^4/s.  MPAS-Ocean scales relative to the finest cells, so it uses
-E3SM's values unconverted, set by the `mpas_ocean_mom_del2` and
-`mpas_ocean_mom_del4` config options.  These are coarse runs for testing the
-analysis members, not scientifically valid simulations.
+viscosity is raised from Omega's default of 1.2e11 m^4/s to 1.0e15 m^4/s to
+reduce, but not remove, grid-scale noise in the velocity.  This value is
+provisional until Omega has the fix to its pressure-gradient errors over
+bathymetry.  On `EC30to60E2r2` they are scaled. Omega scales relative to
+the median cell width, so its viscosities are MPAS-Ocean's values of
+1.0e3 m^2/s and 1.2e11 m^4/s, which are referenced to the 30-km cells,
+converted to the 35.92-km median cell width: 1197 m^2/s and 2.06e11 m^4/s.
+MPAS-Ocean scales relative to the finest cells, so its viscosity values are
+unconverted, set by the `mpas_ocean_mom_del2` and `mpas_ocean_mom_del4`
+config options.  These are coarse runs for testing the analysis members,
+not scientifically valid simulations.
 
 ### time step and run duration
 
