@@ -154,7 +154,23 @@ class Forward(RealisticGlobalForward):
             'config_mom_del2': section.getfloat('mom_del2'),
             'config_mom_del4': section.getfloat('mom_del4'),
         }
+        # mesh scaling is off by default in both models
+        if self.config.has_option('analysis_members', 'mesh_scaling'):
+            options['config_hmix_scaleWithMesh'] = section.getboolean(
+                'mesh_scaling'
+            )
         self.add_model_config_options(options=options, config_model='ocean')
+        # MPAS-Ocean scales its viscosities relative to the finest cells
+        # rather than the median one, so a mesh may give it values of its own
+        mpaso_options = {}
+        for name in ['mom_del2', 'mom_del4']:
+            option = f'mpas_ocean_{name}'
+            if self.config.has_option('analysis_members', option):
+                mpaso_options[f'config_{name}'] = section.getfloat(option)
+        if mpaso_options:
+            self.add_model_config_options(
+                options=mpaso_options, config_model='mpas-ocean'
+            )
 
 
 def _monthly_filenames(template):

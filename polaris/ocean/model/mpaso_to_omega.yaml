@@ -188,6 +188,11 @@ config:
     config_vert_tracer_adv_flux_order: VerticalTracerFluxOrder
 
 - section:
+    hmix: HorzMesh
+  options:
+    config_hmix_scaleWithMesh: MeshScalingEnable
+
+- section:
     hmix_del2: Tendencies
   options:
     config_use_mom_del2: VelDiffTendencyEnable

@@ -32,7 +32,7 @@ initial-condition IDs and the cell count, and a `<mesh>.cfg` file in the
 `analysis_members` package setting the baroclinic and barotropic time steps
 (`dt` and `btr_dt`), the length of the `short` run (`short_run_duration`),
 the number of MOC latitude bins (`moc_num_bins`) and the momentum viscosities
-(`mom_del2` and `mom_del4`).
+(`mom_del2` and `mom_del4`), and optionally `mesh_scaling`.
 
 (dev-ocean-realistic-global-framework)=
 
@@ -120,9 +120,15 @@ is a subclass of the shared {ref}`dev-ocean-realistic-global-framework`
 `Forward`, which supplies the cached initial condition and the shared
 `forward.yaml`.  Its `setup()` fills in the time steps, the `short` run's
 length and the number of MOC bins from the `[analysis_members]` config
-options before the yaml files are added, and adds the `mom_del2` and
-`mom_del4` config options as `config_mom_del2` and `config_mom_del4`, which
-are translated to Omega's `ViscDel2` and `ViscDel4`.
+options before the yaml files are added, and adds the `mom_del2`, `mom_del4`
+and, if set, `mesh_scaling` config options as `config_mom_del2`,
+`config_mom_del4` and `config_hmix_scaleWithMesh`, which are translated to
+Omega's `ViscDel2`, `ViscDel4` and `MeshScalingEnable`.  Scaling is off by
+default in both models.  With scaling on, Omega's viscosities are
+those at the median cell width of the mesh, while MPAS-Ocean's are those at
+the finest cells, so a mesh's config file may set `mpas_ocean_mom_del2` and
+`mpas_ocean_mom_del4`, which are added as MPAS-Ocean-only options after the
+shared ones and so replace them in MPAS-Ocean runs.
 
 For the `1_year` run, which supports only Omega, `setup()` also adds
 `monthly_output.yaml` after the shared yaml file, so that it overrides it.

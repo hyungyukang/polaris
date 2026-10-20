@@ -640,15 +640,20 @@ and shear mixing enabled, and a constant implicit bottom drag coefficient of
 1.0e-3 is applied.
 
 The harmonic and biharmonic momentum viscosities are set per mesh by the
-`mom_del2` and `mom_del4` config options, raised from Omega's defaults of
-1.0e3 m^2/s and 1.2e11 m^4/s to reduce, but not remove, grid-scale noise in
-the velocity.  On `QU.240km`, the biharmonic viscosity is raised to 1.0e15
-m^4/s.  On `EC30to60E2r2`, the harmonic viscosity is raised to 1.0e4 m^2/s,
-since Omega does not scale the biharmonic viscosity with cell width and it
-cannot be raised enough to damp the 60-km cells without going unstable in the
-30-km ones.  These values are provisional until Omega has KPP and the fix to
-its pressure-gradient errors over bathymetry.  These are coarse runs for
-testing the analysis members, not scientifically valid simulations.
+`mom_del2` and `mom_del4` config options.  Setting `mesh_scaling = True`
+scales them with the local cell width (`config_hmix_scaleWithMesh`, Omega's
+`MeshScalingEnable`), which is off by default in both models.  On the
+quasi-uniform `QU.240km` mesh they are not scaled, and the biharmonic
+viscosity is raised from Omega's default of 1.2e11 m^4/s to 1.0e15 m^4/s to reduce, but not remove, grid-scale noise in the
+velocity.  This value is provisional until Omega has the fix to its
+pressure-gradient errors over bathymetry.  On `EC30to60E2r2` they are scaled.
+Omega scales relative to the median cell width, so its viscosities are E3SM's
+MPAS-Ocean values of 1.0e3 m^2/s and 1.2e11 m^4/s, which are referenced to
+the 30-km cells, converted to the 35.92-km median cell width: 1197 m^2/s and
+2.06e11 m^4/s.  MPAS-Ocean scales relative to the finest cells, so it uses
+E3SM's values unconverted, set by the `mpas_ocean_mom_del2` and
+`mpas_ocean_mom_del4` config options.  These are coarse runs for testing the
+analysis members, not scientifically valid simulations.
 
 ### time step and run duration
 
@@ -712,7 +717,10 @@ mom_del4 = 1.0e15
 
 The time steps, run length, MOC bins and viscosities are for `QU.240km`.  On
 `EC30to60E2r2`, `dt` is 30 minutes, `btr_dt` 1 minute, `short_run_duration`
-1 day, `moc_num_bins` 180, `mom_del2` 1.0e4 and `mom_del4` 1.2e11.
+1 day, `moc_num_bins` 180, `mesh_scaling` True, `mom_del2` 1197.0 and
+`mom_del4` 2.06e11, and
+`mpas_ocean_mom_del2` 1.0e3 and `mpas_ocean_mom_del4` 1.2e11 set MPAS-Ocean's
+viscosities.
 
 The `viz` step is controlled by the
 `[realistic_global_viz_temperature]`, `[realistic_global_viz_salinity]`,
